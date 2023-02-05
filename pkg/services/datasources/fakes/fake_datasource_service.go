@@ -60,19 +60,19 @@ func (s *FakeDataSourceService) GetDataSourcesByType(ctx context.Context, query 
 	return nil
 }
 
-func (s *FakeDataSourceService) AddDataSource(ctx context.Context, cmd *datasources.AddDataSourceCommand) error {
+func (s *FakeDataSourceService) AddDataSource(ctx context.Context, cmd *datasources.AddDataSourceCommand) (*datasources.DataSource, error) {
 	if s.lastId == 0 {
 		s.lastId = int64(len(s.DataSources) - 1)
 	}
-	cmd.Result = &datasources.DataSource{
+	dataSource := &datasources.DataSource{
 		Id:    s.lastId + 1,
 		Name:  cmd.Name,
 		Type:  cmd.Type,
 		Uid:   cmd.Uid,
 		OrgId: cmd.OrgId,
 	}
-	s.DataSources = append(s.DataSources, cmd.Result)
-	return nil
+	s.DataSources = append(s.DataSources, dataSource)
+	return dataSource, nil
 }
 
 func (s *FakeDataSourceService) DeleteDataSource(ctx context.Context, cmd *datasources.DeleteDataSourceCommand) error {

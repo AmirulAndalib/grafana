@@ -388,12 +388,9 @@ func (s *spyStore) DeleteDataSource(ctx context.Context, cmd *datasources.Delete
 	return nil
 }
 
-func (s *spyStore) AddDataSource(ctx context.Context, cmd *datasources.AddDataSourceCommand) error {
+func (s *spyStore) AddDataSource(ctx context.Context, cmd *datasources.AddDataSourceCommand) (*datasources.DataSource, error) {
 	s.inserted = append(s.inserted, cmd)
-	cmd.Result = &datasources.DataSource{
-		Uid: cmd.Uid,
-	}
-	return nil
+	return &datasources.DataSource{Uid: cmd.Uid}, nil
 }
 
 func (s *spyStore) UpdateDataSource(ctx context.Context, cmd *datasources.UpdateDataSourceCommand) error {

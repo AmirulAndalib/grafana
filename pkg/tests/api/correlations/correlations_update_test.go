@@ -47,17 +47,17 @@ func TestIntegrationUpdateCorrelation(t *testing.T) {
 		ReadOnly: true,
 		OrgId:    1,
 	}
-	ctx.createDs(createDsCommand)
-	readOnlyDS := createDsCommand.Result.Uid
+	dataSource := ctx.createDs(createDsCommand)
+	readOnlyDS := dataSource.Uid
 
 	createDsCommand = &datasources.AddDataSourceCommand{
 		Name:  "writable",
 		Type:  "loki",
 		OrgId: 1,
 	}
-	ctx.createDs(createDsCommand)
-	writableDs := createDsCommand.Result.Uid
-	writableDsOrgId := createDsCommand.Result.OrgId
+	dataSource = ctx.createDs(createDsCommand)
+	writableDs := dataSource.Uid
+	writableDsOrgId := dataSource.OrgId
 
 	t.Run("Unauthenticated users shouldn't be able to update correlations", func(t *testing.T) {
 		res := ctx.Patch(PatchParams{
