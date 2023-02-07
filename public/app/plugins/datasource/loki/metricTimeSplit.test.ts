@@ -1,7 +1,6 @@
 import { getRanges } from './metricTimeSplit';
 
 describe('querySplit', () => {
-  // FIXME add more tests, for cases like too small chunk-sizes etc.
   it('should split time range into chunks', () => {
     const start = Date.parse('2022-02-06T14:10:03');
     const end = Date.parse('2022-02-06T14:11:03');
