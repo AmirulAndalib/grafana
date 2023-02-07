@@ -11,12 +11,19 @@ import { LokiQuery } from './types';
 function partitionTimeRange(originalTimeRange: TimeRange, intervalMs: number): TimeRange[] {
   // we currently assume we are only running metric queries here.
   // for logs-queries we will have to use a different time-range-split algorithm.
-  return getRanges(
+  const ranges = getRanges(
     originalTimeRange.from.toDate().getTime(),
     originalTimeRange.to.toDate().getTime(),
     intervalMs,
     60 * 1000 // we go with a hardcoded 1minute for now
-  ).map(([start, end]) => {
+  );
+
+  // if the split was not possible, go with the original range
+  if (ranges == null) {
+    return [originalTimeRange];
+  }
+
+  return ranges.map(([start, end]) => {
     const from = dateTime(start);
     const to = dateTime(end);
     return {

@@ -39,7 +39,7 @@ export function getRanges(
   endTime: number,
   step: number,
   idealRangeDuration: number
-): Array<[number, number]> {
+): Array<[number, number]> | null {
   // we must have at least 1 datapoint in the range, even if the idealRangeSize is smaller
   const pointsInChunk = Math.max(Math.trunc(idealRangeDuration / step), 1);
 
@@ -72,8 +72,7 @@ export function getRanges(
   // as a single chunk.
 
   if (ranges.length > MAX_CHUNK_COUNT) {
-    // we create a single chunk, from the start of the first-chunk and the end of the last-chunk
-    return [[ranges[0][0], ranges[ranges.length - 1][1]]];
+    return null;
   }
 
   return ranges;
