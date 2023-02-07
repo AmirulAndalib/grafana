@@ -16,6 +16,13 @@ describe('querySplit', () => {
 
   it('should return null if too many chunks would be generated', () => {
     const start = Date.parse('2022-02-06T14:10:03');
+    const end = Date.parse('2022-02-06T14:30:03');
+    const step = 10 * 1000;
+    expect(getRanges(start, end, step, 20000)).toBeNull();
+  });
+
+  it('should return null if requested duration is smaller than step', () => {
+    const start = Date.parse('2022-02-06T14:10:03');
     const end = Date.parse('2022-02-06T14:20:03');
     const step = 10 * 1000;
     expect(getRanges(start, end, step, 10000)).toBeNull();

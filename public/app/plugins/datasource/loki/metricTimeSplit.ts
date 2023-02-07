@@ -40,7 +40,12 @@ export function getRanges(
   step: number,
   idealRangeDuration: number
 ): Array<[number, number]> | null {
-  // we must have at least 1 datapoint in the range, even if the idealRangeSize is smaller
+  if (idealRangeDuration < step) {
+    // we cannot create chunks smaller than `step`
+    return null;
+  }
+
+  // we must have at least 1 datapoint in the range
   const pointsInChunk = Math.max(Math.trunc(idealRangeDuration / step), 1);
 
   // FIXME: we can probably do this whole math-thing with a way
