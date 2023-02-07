@@ -14,7 +14,7 @@ import (
 )
 
 type Store interface {
-	GetDataSource(ctx context.Context, query *datasources.GetDataSourceQuery) error
+	GetDataSource(ctx context.Context, query *datasources.GetDataSourceQuery) (*datasources.DataSource, error)
 	AddDataSource(ctx context.Context, cmd *datasources.AddDataSourceCommand) (*datasources.DataSource, error)
 	UpdateDataSource(ctx context.Context, cmd *datasources.UpdateDataSourceCommand) error
 	DeleteDataSource(ctx context.Context, cmd *datasources.DeleteDataSourceCommand) error
@@ -66,7 +66,7 @@ func (dc *DatasourceProvisioner) apply(ctx context.Context, cfg *configs) error 
 
 	for _, ds := range cfg.Datasources {
 		cmd := &datasources.GetDataSourceQuery{OrgId: ds.OrgID, Name: ds.Name}
-		err := dc.store.GetDataSource(ctx, cmd)
+		dataSource, err := dc.store.GetDataSource(ctx, cmd)
 		if err != nil && !errors.Is(err, datasources.ErrDataSourceNotFound) {
 			return err
 		}
@@ -88,7 +88,7 @@ func (dc *DatasourceProvisioner) apply(ctx context.Context, cfg *configs) error 
 				}
 			}
 		} else {
-			updateCmd := createUpdateCommand(ds, cmd.Result.Id)
+			updateCmd := createUpdateCommand(ds, dataSource.Id)
 			dc.log.Debug("updating datasource from configuration", "name", updateCmd.Name, "uid", updateCmd.Uid)
 			if err := dc.store.UpdateDataSource(ctx, updateCmd); err != nil {
 				return err
@@ -96,14 +96,14 @@ func (dc *DatasourceProvisioner) apply(ctx context.Context, cfg *configs) error 
 
 			if len(ds.Correlations) > 0 {
 				if err := dc.correlationsStore.DeleteCorrelationsBySourceUID(ctx, correlations.DeleteCorrelationsBySourceUIDCommand{
-					SourceUID: cmd.Result.Uid,
+					SourceUID: dataSource.Uid,
 				}); err != nil {
 					return err
 				}
 			}
 
 			for _, correlation := range ds.Correlations {
-				if insertCorrelationCmd, err := makeCreateCorrelationCommand(correlation, cmd.Result.Uid, updateCmd.OrgId); err == nil {
+				if insertCorrelationCmd, err := makeCreateCorrelationCommand(correlation, dataSource.Uid, updateCmd.OrgId); err == nil {
 					correlationsToInsert = append(correlationsToInsert, insertCorrelationCmd)
 				} else {
 					dc.log.Error("failed to parse correlation", "correlation", correlation)
@@ -181,7 +181,8 @@ func (dc *DatasourceProvisioner) deleteDatasources(ctx context.Context, dsToDele
 	for _, ds := range dsToDelete {
 		cmd := &datasources.DeleteDataSourceCommand{OrgID: ds.OrgID, Name: ds.Name}
 		getDsQuery := &datasources.GetDataSourceQuery{Name: ds.Name, OrgId: ds.OrgID}
-		if err := dc.store.GetDataSource(ctx, getDsQuery); err != nil && !errors.Is(err, datasources.ErrDataSourceNotFound) {
+		dataSource, err := dc.store.GetDataSource(ctx, getDsQuery)
+		if err != nil && !errors.Is(err, datasources.ErrDataSourceNotFound) {
 			return err
 		}
 
@@ -189,15 +190,15 @@ func (dc *DatasourceProvisioner) deleteDatasources(ctx context.Context, dsToDele
 			return err
 		}
 
-		if getDsQuery.Result != nil {
+		if dataSource != nil {
 			if err := dc.correlationsStore.DeleteCorrelationsBySourceUID(ctx, correlations.DeleteCorrelationsBySourceUIDCommand{
-				SourceUID: getDsQuery.Result.Uid,
+				SourceUID: dataSource.Uid,
 			}); err != nil {
 				return err
 			}
 
 			if err := dc.correlationsStore.DeleteCorrelationsByTargetUID(ctx, correlations.DeleteCorrelationsByTargetUIDCommand{
-				TargetUID: getDsQuery.Result.Uid,
+				TargetUID: dataSource.Uid,
 			}); err != nil {
 				return err
 			}
