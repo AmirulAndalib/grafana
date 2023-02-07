@@ -157,7 +157,6 @@ type GetDataSourcesQuery struct {
 	OrgId           int64
 	DataSourceLimit int
 	User            *user.SignedInUser
-	Result          []*DataSource
 }
 
 type GetAllDataSourcesQuery struct {
