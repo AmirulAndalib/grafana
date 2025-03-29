@@ -170,6 +170,8 @@ func SetupConfig(
 			operationAlt = "get" + operationAlt[len("read"):]
 		} else if strings.HasPrefix(operationAlt, "patch") {
 			operationAlt = "update" + operationAlt[len("patch"):]
+		} else if strings.HasPrefix(operationAlt, "put") {
+			operationAlt = "replace" + operationAlt[len("put"):]
 		}
 
 		// Audit our options here
@@ -372,7 +374,7 @@ func InstallAPIs(
 			if currentMode != mode {
 				klog.Warningf("Requested DualWrite mode: %d, but using %d for %+v", mode, currentMode, gr)
 			}
-			return grafanarest.NewDualWriter(currentMode, legacy, storage, reg, key), nil
+			return dualwrite.NewDualWriter(gr, currentMode, legacy, storage)
 		}
 	}
 
